@@ -1,0 +1,114 @@
+﻿<!doctype html>
+<html>
+	<head>
+		<script type="text/javascript">
+			var quadtree;
+			function quadtree_build() {
+				quadtree = {x:0, y:0, w:1000, h:1000};
+				for (var i = 0; i < _nodes.length; i++) {
+					quad_insert(_nodes[i], quadtree);
+				}
+				
+				prune(quadtree);
+				compute_mass(quadtree);
+			}
+
+			function prune(n) {
+				if (n && n["a"]) {
+					if (!n["a"]["a"] && !n["a"]["val"]) {
+						delete n["a"];
+					}
+					if (!n["b"]["a"] && !n["b"]["val"]) {
+						delete n["b"];
+					}
+					if (!n["c"]["a"] && !n["c"]["val"]) {
+						delete n["c"];
+					}
+					if (!n["d"]["a"] && !n["d"]["val"]) {
+						delete n["d"];
+					}
+					prune(n["a"]);
+					prune(n["b"]);
+					prune(n["c"]);
+					prune(n["d"]);
+				}
+			}
+
+			function quad_insert(i, n) {
+				if (n["a"]) {
+					quad_insert(i, get_child(i, n));
+				} else if (n["val"]) {
+					var newWidth = n["w"]/2;
+					var newHeight = n["h"]/2;
+					var offsetX = n["w"]/4;
+					var offsetY = n["h"]/4;
+					n["a"] = {x: (n["x"]-offsetX), y: (n["y"]+offsetY), w: newWidth, h: newHeight};
+					n["b"] = {x: (n["x"]+offsetX), y: (n["y"]+offsetY), w: newWidth, h: newHeight};
+					n["c"] = {x: (n["x"]-offsetX), y: (n["y"]-offsetY), w: newWidth, h: newHeight};
+					n["d"] = {x: (n["x"]+offsetX), y: (n["y"]-offsetY), w: newWidth, h: newHeight};
+					
+					var node = n["val"];
+					get_child(node, n)["val"] = node;
+					
+					delete n["val"];
+					
+					quad_insert(i, get_child(i, n));
+				} else {
+					n["val"] = i;
+				}
+			}
+			
+			function get_child(i, n) {
+				var newWidth = n["w"]/2;
+				var newHeight = n["h"]/2;
+				var offsetX = n["w"]/4;
+				var offsetY = n["h"]/4;
+				
+				if (i["x"] >= (n["a"]["x"] - offsetX) && i["x"] < (n["a"]["x"] + offsetX) && i["y"] >= (n["a"]["y"] - offsetY) && i["y"] < (n["a"]["y"] + offsetY)) {
+					return n["a"];
+				} else if (i["x"] >= (n["b"]["x"] - offsetX) && i["x"] < (n["b"]["x"] + offsetX) && i["y"] >= (n["b"]["y"] - offsetY) && i["y"] < (n["b"]["y"] + offsetY)) {
+					return n["b"];
+				} else if (i["x"] >= (n["c"]["x"] - offsetX) && i["x"] < (n["c"]["x"] + offsetX) && i["y"] >= (n["c"]["y"] - offsetY) && i["y"] < (n["c"]["y"] + offsetY)) {
+					return n["c"];
+				} else {
+					return n["d"];
+				}
+			}
+			
+			function compute_mass(n) {
+				if (n && n["val"]) {
+					node = n["val"];
+					n["m"] = node["m"];
+					n["cm"] = [node["x"], node["y"]];
+					return [n["m"], n["cm"]];
+				} else if (n) {
+					var amass = compute_mass(n["a"]);
+					var bmass = compute_mass(n["b"]);
+					var cmass = compute_mass(n["c"]);
+					var dmass = compute_mass(n["d"]);
+					
+					var mass = amass[0] + bmass[0] + cmass[0] + dmass[0];
+					var cm = (amass[0]*amass[1] + bmass[0]*bmass[1] + cmass[0]*cmass[1] + dmass[0]*dmass[1]) / mass;
+					n["m"] = mass;
+					n["cm"] = cm;
+					return [mass, cm];
+				} else {
+					return [0, 0];
+				}
+			}
+
+			var _nodes = [{"x": 0.0,"y": 0.0,"vx": 0.0,"vy": 0.0,"m": 1.0,"c": "#FFFFFF"}];
+			var _links = [];
+
+			for (var i=0; i < 1000; i++) {
+				var x = Math.floor(Math.random() * 1000) - 499;
+				var y = Math.floor(Math.random() * 1000) - 499;
+				var n = {x: x, y: y, vx: 0.0, vy: 0.0, m: 1.0, c: "#555555"};
+				_nodes.push(n);
+			}
+
+			quadtree_build();
+		</script>
+	</head>
+	<body></body>
+</html>

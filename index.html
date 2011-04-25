@@ -1,0 +1,24 @@
+﻿<html>
+	<head>
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+		<link rel="stylesheet" href="css/styles.css" type="text/css" />
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"> </script>
+		<script type="text/javascript" src="js/quadtree.js"></script>
+		<!--  <script type="text/javascript" src="js/main.js"> </script> -->
+	</head>
+	<body>
+		<section id="container">
+			<canvas id="canvas">Please use a browser that supports canvas.</canvas>
+			<section id="controls">
+				<table id="controltable">
+					<tr>
+							<td><input id="speed" type="range" min="5" max="15" step="1" value="10" /><br/>Speed: <span id="speed_val"></span></td>
+							<td><input id="repulsion" type="range" min="1" max="2000000" step="1" value="1000000" /><br/>Repulsion: <span id="rep_val"></span></td>
+							<td><input id="springs" type="range" min="1" max="200" step="1" value="50" /><br/>Spring Strength: <span id="spring_val"></span></td>
+					</tr>
+				</table>
+			</section>
+			
+		</section>
+	</body>
+</html>
