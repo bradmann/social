@@ -6,7 +6,7 @@
 	var nodes = [{x: 0.0,y: 0.0,vx: 0.0,vy: 0.0,m: 1.0, c: "#FFFFFF"}];
 	var links = [];
 	var forces = [];
-	var config = {coulombConstant: 1000000, damping: .07, springConstant: .5, theta: 1, timeStep: 1};
+	var config = {coulombConstant: 1000000, damping: .02, springConstant: .7, theta: 1, timeStep: 1.5};
 	var interval = 20;
 	var nodeRadius = 10;
 	var selectedNode = -1;
@@ -22,6 +22,7 @@
 	$('#canvas').attr('height', '1000');
 	
 	$('#canvas').mousedown(function(evt) {
+		evt.preventDefault();
 		var x = evt.pageX - this.offsetLeft - 500;
 		var y = -(evt.pageY - this.offsetTop - 500);
 		selectedNode = engine.get_node_at_location(x, y);
