@@ -1,46 +1,66 @@
 ﻿$(function() {
-	var _engine = Object.create(_computePrototype);
-	var _graphics = Object.create(_graphicsPrototype);
+	var engine = Object.create(nodular.computePrototype);
+	var graphics = Object.create(nodular.graphicsPrototype);
 
-	var _quadtree;
-	var _nodes = [{x: 0.0,y: 0.0,vx: 0.0,vy: 0.0,m: 1.0, c: "#FFFFFF"}];
-	var _links = [];
-	var _forces = [];
-	var _theta = 1;
-	var _coulombConstant = 1000000;
-	var _springConstant = .5;
-	var _timeStep = 1;
-	var _damping = .07;
-	var _interval = 20;
-	var _nodeRadius = 10;
-	var _selectedNode = -1;
-	var _canvas = $('#canvas')[0];
-	var _ctx = _canvas.getContext('2d');
+	var quadtree;
+	var nodes = [{x: 0.0,y: 0.0,vx: 0.0,vy: 0.0,m: 1.0, c: "#FFFFFF"}];
+	var links = [];
+	var forces = [];
+	var config = {coulombConstant: 1000000, damping: .07, springConstant: .5, theta: 1, timeStep: 1};
+	var interval = 20;
+	var nodeRadius = 10;
+	var selectedNode = -1;
+	var canvas = $('#canvas')[0];
+	var ctx = canvas.getContext('2d');
+	
+	function update_graph() {
+		engine.compute_graph();
+		graphics.render(nodes, links);
+	}
 
 	$('#canvas').attr('width', '1000');
 	$('#canvas').attr('height', '1000');
+	
+	$('#canvas').mousedown(function(evt) {
+		var x = evt.pageX - this.offsetLeft - 500;
+		var y = -(evt.pageY - this.offsetTop - 500);
+		selectedNode = engine.get_node_at_location(x, y);
+		engine.select_node(selectedNode);
+	});
+	
+	$('#canvas').mouseup(function(evt) {
+		selectedNode = -1;
+		engine.deselect_node();
+	});
+	
+	$('#canvas').mousemove(function(evt) {
+		if (selectedNode !== -1) {
+			var x = evt.pageX - this.offsetLeft - 500;
+			var y = -(evt.pageY - this.offsetTop - 500);
+			engine.move_node(selectedNode, x, y);
+		}
+	});
 
-	for (var i=0; i < 21; i++) {
+	//Make some nodes here
+	for (var i=0; i < 50; i++) {
 		var x = Math.floor(Math.random() * 1000) - 499;
 		var y = Math.floor(Math.random() * 1000) - 499;
 		var n = {x: x, y: y, vx: 0.0, vy: 0.0, m: 1.0, c: "#555555"};
-		_nodes.push(n);
+		nodes.push(n);
 	}
 
-	for (var i=1; i < 22; i++) {
+	//Make some links here
+	for (var i=1; i < 51; i++) {
 		var link = {a: 0, b: i, c: "#000000"};
-		_links.push(link);
+		links.push(link);
 	}
+	
+	//Set up the engine with our universe parameters
+	engine.init(config);
+	engine.nodes = nodes;
+	engine.links = links;
+	//Set up the graphics engine with our canvas context
+	graphics.init(ctx);
 
 	setInterval(update_graph, 20);
-	
-	function update_graph() {
-		_engine._nodes = _nodes;
-		_engine._links = _links;
-		_engine.compute_graph();
-		_graphics._nodes = _nodes;
-		_graphics._links = _links;
-		_graphics._nodeRadius = _nodeRadius;
-		_graphics.render(_ctx);
-	}
 });
