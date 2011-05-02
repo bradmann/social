@@ -1,67 +1,107 @@
 ﻿$(function() {
 	var engine = Object.create(nodular.computePrototype);
 	var graphics = Object.create(nodular.graphicsPrototype);
-
+	
 	var quadtree;
 	var nodes = [{x: 0.0,y: 0.0,vx: 0.0,vy: 0.0,m: 1.0, c: "#FFFFFF"}];
 	var links = [];
 	var forces = [];
-	var config = {coulombConstant: 1000000, damping: .02, springConstant: .7, theta: 1, timeStep: 1.5};
 	var interval = 20;
 	var nodeRadius = 10;
 	var selectedNode = -1;
+	var width = 2000;
+	var height = 1000;
 	var canvas = $('#canvas')[0];
+	var canvaswidth = $(canvas).width();
+	var canvasheight = $(canvas).height();
 	var ctx = canvas.getContext('2d');
+	var graphconfig = {coulombConstant: 1000000, damping: .02, springConstant: .7, theta: 1, timeStep: 1, width: width, height: height};
+	var canvasconfig = {context: ctx, width: width, height: height};
+	
+	function setup_controls() {
+		$('#speed_val').html(graphconfig.timeStep);
+		$('#damping_val').html(graphconfig.damping);
+		$('#rep_val').html(graphconfig.coulombConstant);
+		$('#spring_val').html(graphconfig.springConstant);
+		$('#speed').bind('change', function(evt) {
+			var val = $(this).val() / 10;
+			engine.timeStep = val;
+			$('#speed_val').html(val);
+		});
+		$('#damping').bind('change', function(evt) {
+			var val = $(this).val() / 1000;
+			engine.damping = val;
+			$('#damping_val').html(val);
+		});
+		$('#repulsion').bind('change', function(evt) {
+			var val = $(this).val();
+			engine.coulombConstant = val;
+			$('#rep_val').html(val);
+		});
+		$('#springs').bind('change', function(evt) {
+			var val = $(this).val() / 100;
+			engine.springConstant = val;
+			$('#spring_val').html(val);
+		});
+	}
 	
 	function update_graph() {
 		engine.compute_graph();
 		graphics.render(nodes, links);
 	}
 
-	$('#canvas').attr('width', '1000');
-	$('#canvas').attr('height', '1000');
+	setup_controls();
 	
-	$('#canvas').mousedown(function(evt) {
+	$(canvas).attr('width', width.toString());
+	$(canvas).attr('height', height.toString());
+	
+	$(canvas).mousedown(function(evt) {
 		evt.preventDefault();
-		var x = evt.pageX - this.offsetLeft - 500;
-		var y = -(evt.pageY - this.offsetTop - 500);
+		var x = (evt.pageX - this.offsetLeft - (canvaswidth / 2)) * (width/canvaswidth);
+		var y = -(evt.pageY - this.offsetTop - (canvasheight / 2)) * (height/canvasheight);
 		selectedNode = engine.get_node_at_location(x, y);
 		engine.select_node(selectedNode);
 	});
 	
-	$('#canvas').mouseup(function(evt) {
+	$(canvas).mouseup(function(evt) {
 		selectedNode = -1;
 		engine.deselect_node();
 	});
 	
-	$('#canvas').mousemove(function(evt) {
+	$(canvas).mousemove(function(evt) {
 		if (selectedNode !== -1) {
-			var x = evt.pageX - this.offsetLeft - 500;
-			var y = -(evt.pageY - this.offsetTop - 500);
+			var x = (evt.pageX - this.offsetLeft - (canvaswidth / 2)) * (width/canvaswidth);
+			var y = -(evt.pageY - this.offsetTop - (canvasheight / 2)) * (height/canvasheight);
 			engine.move_node(selectedNode, x, y);
 		}
 	});
 
 	//Make some nodes here
-	for (var i=0; i < 50; i++) {
-		var x = Math.floor(Math.random() * 1000) - 499;
-		var y = Math.floor(Math.random() * 1000) - 499;
+	for (var i=0; i < 19; i++) {
+		var x = Math.floor(Math.random() * width) - ((width / 2) - 1);
+		var y = Math.floor(Math.random() * height) - ((height / 2) - 1);
 		var n = {x: x, y: y, vx: 0.0, vy: 0.0, m: 1.0, c: "#555555"};
 		nodes.push(n);
 	}
 
 	//Make some links here
-	for (var i=1; i < 51; i++) {
+	for (var i=1; i < 20; i++) {
 		var link = {a: 0, b: i, c: "#000000"};
 		links.push(link);
 	}
 	
+	links.push({a: 1, b: 5, c: "#000000"});
+	links.push({a: 4, b: 7, c: "#000000"});
+	links.push({a: 3, b: 4, c: "#000000"});
+	links.push({a: 5, b: 8, c: "#000000"});
+	links.push({a: 4, b: 6, c: "#000000"});
+	
 	//Set up the engine with our universe parameters
-	engine.init(config);
+	engine.init(graphconfig);
 	engine.nodes = nodes;
 	engine.links = links;
-	//Set up the graphics engine with our canvas context
-	graphics.init(ctx);
+	//Set up the graphics engine with our canvas config
+	graphics.init(canvasconfig);
 
 	setInterval(update_graph, 20);
 });

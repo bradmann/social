@@ -2,16 +2,20 @@
 	nodular = {};
 	nodular.graphicsPrototype = {
 		ctx: null,
-		init: function(ctx) {
-			this.ctx = ctx;
+		width: 1000,
+		height: 1000,
+		init: function(config) {
+			this.ctx = config.context;
+			this.width = config.width;
+			this.height = config.height;
 		},
 
 		render: function(nodes, links) {
 			var nodeRadius = 10;
 			var ctx = this.ctx;
-			ctx.clearRect(0, 0, 1000, 1000);
+			ctx.clearRect(0, 0, this.width, this.height);
 			ctx.save()
-			ctx.translate(500, 500);
+			ctx.translate(this.width / 2, this.height / 2);
 			ctx.scale(1, -1);
 			var total_kinectic = 0;
 			
@@ -34,20 +38,16 @@
 				ctx.stroke();
 			}
 			
-			//nodes = calculate();
-			
-			//var vel = Math.pow(nodes[i]["v"][0], 2) + Math.pow(nodes[i]["v"][1], 2);
-			//total_kinetic = total_kinetic + (nodes[i]["m"] * vel);
+			for (var i=0; i < links.length; i++) {
+				var link = links[i];
+				drawSpring(nodes[link["a"]], nodes[link["b"]], 1);
+			}
 			
 			for (var i=0; i < nodes.length; i++) {
 				var node = nodes[i];
 				drawCircle(node["x"], node["y"], node["m"] * nodeRadius, '#000000', node["c"]);
 			}
-			
-			for (var i=0; i < links.length; i++) {
-				var link = links[i];
-				drawSpring(nodes[link["a"]], nodes[link["b"]], 1);
-			}
+		
 			ctx.restore();
 		}
 	}
@@ -57,16 +57,20 @@
 		coulombConstant: 1000000,
 		springConstant: .5,
 		timeStep: 1,
-		damping: .07,
+		damping: .02,
 		selectedNode: -1,
 		nodes: [],
 		links: [],
+		width: 1000,
+		heigth: 1000,
 		init: function(config) {
 			this.coulombConstant = config.coulombConstant;
 			this.damping = config.damping;
 			this.springConstant = config.springConstant;
 			this.theta = config.theta;
 			this.timeStep = config.timeStep;
+			this.width = config.width;
+			this.height = config.height;
 			this.nodeRadius = 10;
 		},
 		select_node: function(idx) {
@@ -101,6 +105,8 @@
 			var timeStep = this.timeStep;
 			var damping = this.damping;
 			var quadtree;
+			var width = this.width;
+			var height = this.height;
 			
 			function coulomb(node1, node2) {
 				var x = node1["x"] - node2["x"];
@@ -123,7 +129,7 @@
 			}
 		
 			function quadtree_build() {
-				quadtree = {x:0, y:0, w:10000, h:10000};
+				quadtree = {x:0, y:0, w: width + 10, h: height + 10};
 				for (var i = 0; i < nodes.length; i++) {
 					quad_insert(nodes[i], quadtree);
 				}
@@ -171,7 +177,11 @@
 					
 					delete n["val"];
 					
-					quad_insert(i, get_child(i, n));
+					try {
+						quad_insert(i, get_child(i, n));
+					} catch (e) {
+						alert("whoops!");
+					}
 				} else {
 					n["val"] = i;
 				}
@@ -287,7 +297,12 @@
 				
 				// Calculate node position
 				node["x"] = node["x"] + (timeStep * node["vx"]);
+				if (node["x"] > width / 2) {node["x"] = width / 2;}
+				if (node["x"] < -(width / 2)) {node["x"] = -(width / 2);}
+				
 				node["y"] = node["y"] + (timeStep * node["vy"]);
+				if (node["y"] > height / 2) {node["y"] = height / 2;}
+				if (node["y"] < -(height / 2)) {node["y"] = -(height / 2);}
 			}
 		}
 	}
