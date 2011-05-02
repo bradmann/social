@@ -63,9 +63,11 @@
 		engine.select_node(selectedNode);
 	});
 	
-	$(canvas).mouseup(function(evt) {
-		selectedNode = -1;
-		engine.deselect_node();
+	$(window).mouseup(function(evt) {
+		if (selectedNode !== -1) {
+			selectedNode = -1;
+			engine.deselect_node();
+		}
 	});
 	
 	$(canvas).mousemove(function(evt) {
