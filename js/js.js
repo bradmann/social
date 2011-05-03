@@ -45,6 +45,7 @@
 	}
 	
 	function load_json(data) {
+		var usermap = {};
 		for (var i = 0; i < data.length; i++) {
 			var url = data[i]["url"];
 			var loc = pick_random_location();
@@ -53,10 +54,19 @@
 			links.push({a: 0, b: nodeid, c: "#000000"});
 			var users = data[i]["users"];
 			for (var j = 0; j < users.length; j++) {
-				var l2 = pick_random_location();
-				nodes.push({x: l2[0],y: l2[1],vx: 0.0,vy: 0.0,m: 1.0, c: "#555555"});
-				var newid = nodes.length - 1;
-				links.push({a: nodeid, b: newid, c: "#000000"});
+				if (!usermap[users[j]]) {
+					usermap[users[j]] = [];
+				}
+				usermap[users[j]].push(nodeid);
+			}
+		}
+		for (var key in usermap) {
+			var urls = usermap[key];
+			var l2 = pick_random_location();
+			nodes.push({x: l2[0],y: l2[1],vx: 0.0,vy: 0.0,m: 1.0, c: "#555555"});
+			var nodeid = nodes.length - 1;
+			for (var i=0; i < urls.length; i++) {
+				links.push({a: urls[i], b: nodeid, c: "#000000"});
 			}
 		}
 	}
