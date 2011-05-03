@@ -3,7 +3,7 @@
 	var graphics = Object.create(nodular.graphicsPrototype);
 	
 	var quadtree;
-	var nodes = [{x: 0.0,y: 0.0,vx: 0.0,vy: 0.0,m: 1.0, c: "#FFFFFF"}];
+	var nodes = [{x: 0.0,y: 0.0,vx: 0.0,vy: 0.0,m: 1.0, c: "#000000"}];
 	var links = [];
 	var forces = [];
 	var interval = 20;
@@ -49,6 +49,10 @@
 		engine.compute_graph();
 		graphics.render(nodes, links);
 	}
+	
+	function pick_random_location() {
+		return [Math.floor(Math.random() * width) - ((width / 2) - 1), Math.floor(Math.random() * height) - ((height / 2) - 1)];
+	}
 
 	setup_controls();
 	
@@ -60,6 +64,10 @@
 		var x = (evt.pageX - this.offsetLeft - (canvaswidth / 2)) * (width/canvaswidth);
 		var y = -(evt.pageY - this.offsetTop - (canvasheight / 2)) * (height/canvasheight);
 		selectedNode = engine.get_node_at_location(x, y);
+		var url = nodes[selectedNode]["data"];
+		if (url) {
+			$('#links').html('<a href="' + url + '" target="_blank">' + url + '</a>');
+		}
 		engine.select_node(selectedNode);
 	});
 	
@@ -79,7 +87,7 @@
 	});
 
 	//Make some nodes here
-	for (var i=0; i < 19; i++) {
+	/*for (var i=0; i < 19; i++) {
 		var x = Math.floor(Math.random() * width) - ((width / 2) - 1);
 		var y = Math.floor(Math.random() * height) - ((height / 2) - 1);
 		var n = {x: x, y: y, vx: 0.0, vy: 0.0, m: 1.0, c: "#555555"};
@@ -96,7 +104,29 @@
 	links.push({a: 4, b: 7, c: "#000000"});
 	links.push({a: 3, b: 4, c: "#000000"});
 	links.push({a: 5, b: 8, c: "#000000"});
-	links.push({a: 4, b: 6, c: "#000000"});
+	links.push({a: 4, b: 6, c: "#000000"});*/
+	
+	$.ajax({
+			url: 'links.xqy',
+			dataType: 'json',
+			async: false,
+			success: function(data) {
+				for (var i = 0; i < data.length; i++) {
+					var url = data[i]["url"];
+					var loc = pick_random_location();
+					nodes.push({x: loc[0],y: loc[1],vx: 0.0,vy: 0.0,m: 1.0, c: "#FFFFFF", data: url});
+					var nodeid = nodes.length - 1;
+					links.push({a: 0, b: nodeid, c: "#000000"});
+					var users = data[i]["users"];
+					for (var j = 0; j < users.length; j++) {
+						var l2 = pick_random_location();
+						nodes.push({x: l2[0],y: l2[1],vx: 0.0,vy: 0.0,m: 1.0, c: "#555555"});
+						var newid = nodes.length - 1;
+						links.push({a: nodeid, b: newid, c: "#000000"});
+					}
+				}
+			}
+});
 	
 	//Set up the engine with our universe parameters
 	engine.init(graphconfig);
