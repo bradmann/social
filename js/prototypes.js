@@ -2,31 +2,72 @@
 	nodular = {};
 	nodular.graphicsPrototype = {
 		ctx: null,
+		canvas: null,
+		nodeImages: {},
 		width: 1000,
 		height: 1000,
+		lineWidth: 3,
+		strokeColor: '#000000',
 		init: function(config) {
-			this.ctx = config.context;
+			this.canvas = config.canvas;
+			this.ctx = this.canvas.getContext('2d');
 			this.width = config.width;
 			this.height = config.height;
+			this.ctx.translate(this.width / 2, this.height / 2);
+			this.ctx.scale(1, -1);
 		},
 
 		render: function(nodes, links) {
 			var nodeRadius = 10;
 			var ctx = this.ctx;
-			ctx.clearRect(0, 0, this.width, this.height);
+			var width = this.width;
+			var height = this.height
+			var nodeImages = this.nodeImages;
+			var lineWidth = this.lineWidth;
+			var strokeColor = this.strokeColor;
+			ctx.clearRect(-(width/2), -(height/2), width, height);
 			ctx.save()
-			ctx.translate(this.width / 2, this.height / 2);
-			ctx.scale(1, -1);
 			var total_kinectic = 0;
 			
-			function drawCircle (x, y, radius, stroke, fill) {
-				ctx.beginPath();
-				ctx.arc(x, y, radius, 0, Math.PI * 2, false);
-				ctx.strokeStyle = stroke;
-				ctx.lineWidth = 3;
-				ctx.fillStyle = fill;
-				ctx.stroke();
-				ctx.fill();
+			function createNodeCanvas(radius, linewidth, strokecolor, fill) {
+				var canvas = document.createElement('canvas');
+				canvas.setAttribute('width', (radius + linewidth) * 2);
+				canvas.setAttribute('height', (radius + linewidth) * 2);
+				var context = canvas.getContext('2d');
+				context.beginPath();
+				context.arc(radius + linewidth, radius + linewidth, radius, 0, Math.PI * 2, true);
+				context.strokeStyle = strokecolor;
+				context.lineWidth = linewidth;
+				context.fillStyle = fill;
+				context.fill();
+				context.stroke();
+				if (!nodeImages[radius]) {
+					nodeImages[radius] = {};
+					nodeImages[radius][fill] = {};
+					nodeImages[radius][fill][linewidth] = canvas;
+				} else if (!nodeImages[radius][fill]) {
+					nodeImages[radius][fill] = {};
+					nodeImages[radius][fill][linewidth] = canvas;
+				} else {
+					nodeImages[radius][fill][linewidth] = canvas;
+				}
+				return canvas;
+			}
+			
+			function makeNode(radius, fillcolor) {
+				if (nodeImages[radius] && nodeImages[radius][fillcolor]) {
+					return nodeImages[radius][fillcolor];
+				}
+			
+				if (!nodeImages[radius]) {
+					nodeImages[radius] = {};
+				}
+				
+				return nodeImages[radius][fillcolor] = createNodeCanvas(radius, lineWidth, strokeColor, fillcolor);
+			}
+			
+			function drawNode(x, y, node) {
+				ctx.drawImage(node, x - (node.width/2), y - (node.height/2));
 			}
 			
 			function drawSpring(n1, n2, weight) {
@@ -45,9 +86,11 @@
 			
 			for (var i=0; i < nodes.length; i++) {
 				var node = nodes[i];
-				drawCircle(node["x"], node["y"], node["m"] * nodeRadius, '#000000', node["c"]);
+				var radius = node["m"] * nodeRadius;
+				var nodeImage = makeNode(radius, node["c"]);
+				drawNode(node["x"], node["y"], nodeImage);
 			}
-		
+			
 			ctx.restore();
 		}
 	}
