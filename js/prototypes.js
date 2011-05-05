@@ -10,23 +10,28 @@
 		strokeColor: '#000000',
 		init: function(config) {
 			this.canvas = config.canvas;
+			this.memcanvas = this.canvas.cloneNode(false);
 			this.ctx = this.canvas.getContext('2d');
+			this.memctx = this.memcanvas.getContext('2d');
 			this.width = config.width;
 			this.height = config.height;
-			this.ctx.translate(this.width / 2, this.height / 2);
-			this.ctx.scale(1, -1);
+			this.memctx.translate(this.width / 2, this.height / 2);
+			this.memctx.scale(1, -1);
 		},
 
 		render: function(nodes, links) {
 			var nodeRadius = 10;
+			var memcanvas = this.memcanvas;
+			var memctx = this.memctx;
 			var ctx = this.ctx;
 			var width = this.width;
 			var height = this.height
 			var nodeImages = this.nodeImages;
 			var lineWidth = this.lineWidth;
 			var strokeColor = this.strokeColor;
-			ctx.clearRect(-(width/2), -(height/2), width, height);
-			ctx.save()
+			memctx.clearRect(-(width/2), -(height/2), width, height);
+			
+			ctx.clearRect(0, 0, width, height);
 			var total_kinectic = 0;
 			
 			function createNodeCanvas(radius, linewidth, strokecolor, fill) {
@@ -67,16 +72,18 @@
 			}
 			
 			function drawNode(x, y, node) {
-				ctx.drawImage(node, x - (node.width/2), y - (node.height/2));
+				memctx.drawImage(node, x - (node.width/2), y - (node.height/2));
 			}
 			
 			function drawSpring(n1, n2, weight) {
-				ctx.lineWidth = weight;
-				ctx.beginPath();
-				ctx.moveTo(n1["x"], n1["y"]);
-				ctx.lineTo(n2["x"], n2["y"]);
-				ctx.closePath();
-				ctx.stroke();
+				memctx.save();
+				memctx.lineWidth = weight;
+				memctx.beginPath();
+				memctx.moveTo(n1["x"], n1["y"]);
+				memctx.lineTo(n2["x"], n2["y"]);
+				memctx.closePath();
+				memctx.stroke();
+				memctx.restore();
 			}
 			
 			for (var i=0; i < links.length; i++) {
@@ -91,7 +98,7 @@
 				drawNode(node["x"], node["y"], nodeImage);
 			}
 			
-			ctx.restore();
+			ctx.drawImage(memcanvas, 0, 0);
 		}
 	}
 
