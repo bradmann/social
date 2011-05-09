@@ -46,8 +46,8 @@
 		
 		$('#loaddata').bind('click', function(evt) {
 			$('#logo').hide();
-			$.ajax({
-				url: 'links.xqy',
+			/*$.ajax({
+				url: 'buildlinks.xqy',
 				dataType: 'json',
 				async: false,
 				success: function(data) {
@@ -55,17 +55,17 @@
 					load_json(data);
 					update_graph();
 				}
-			});
+			});*/
 	
-			/*clearTimeout(timeout);
+			clearTimeout(timeout);
 			var json = '[{"url": "http://bit.ly/gckpQj", "users": ["Rona441", "Mathilde667"]}, {"url": "http://su.pr/1OSbEv", "users": ["ramblingepicure", "MeetaWFLH", "ockstyle"]}, {"url": "http://4sq.com/hITFR7", "users": ["bradyfrady", "Kochloffel_TR"]}, {"url": "http://bit.ly/e3PwnZ", "users": ["NewsBing", "NewLadyGagaHere"]}, {"url": "http://bit.ly/gfItCs", "users": ["Reeseqwdn23219", "oapfKevin27801"]}, {"url": "http://ow.ly/i/axdW", "users": ["samisgyros", "InnerSpaceAZ"]}, {"url": "http://bit.ly/ht4R1g", "users": ["NewsBing", "NewLadyGagaHere"]}, {"url": "http://plixi.com/p/93794226", "users": ["rossvinazaret", "AngelQuezadaI"]}, {"url": "http://plixi.com/p/93754750", "users": ["UVAMensLacrosse", "dolphinslaxer"]}, {"url": "http://yfrog.com/h2moafaj", "users": ["MissKerokbae", "yuki_endah", "naynaya"]}, {"url": "http://t.co/A6YxY40", "users": ["againstthedick", "MuscleSF"]}, {"url": "http://bit.ly/hGCSYK", "users": ["NewsBing", "NewLadyGagaHere"]}, {"url": "http://plixi.com/p/93780153", "users": ["LadyPink2525", "NiKKi_DaTcRaK"]}, {"url": "http://bit.ly/gTUZc4", "users": ["ihub_2UZ", "ihub_1UZ"]}, {"url": "http://t.co/ZLvy8DE", "users": ["lorencondron", "styadrma"]}, {"url": "http://amzn.to/hzCDmB", "users": ["Wurst_RT", "fleischwaren"]}, {"url": "http://tumblr.com/xwq26aez5p", "users": ["jbieber_ingrid", "justinbonelove"]}, {"url": "http://bit.ly/dUPnur", "users": ["BennyHollywood", "sexycelebstweet", "amyparsnews"]}, {"url": "http://bit.ly/eTubn8", "users": ["Britneyxxxxx", "brigetlaura"]}, {"url": "http://bit.ly/fMMoHT", "users": ["NewsBing", "NewLadyGagaHere"]}, {"url": "http://bit.ly/hksGL7", "users": ["CaleSomething", "vesper7"]}, {"url": "http://fb.me/VQysQSv3", "users": ["AJBombers", "alteredduck"]}, {"url": "http://tumblr.com/xmd26a3u9l", "users": ["Luuhzecchini", "leoo_g"]}, {"url": "http://tout.com/u/tomhallett/moments/4Hh8h9mhTSg", "users": ["ErikLindsley", "gregmc2555", "DarrenBarbera", "cstagg1239", "jsatcher1512", "AllanVizcaino", "kellycranor01", "mjock12582", "jamiecoloma01", "MathewRemer", "dailybarking", "NelsonHynd"]}, {"url": "http://tl.gd/9ua37q", "users": ["RAPnPRD_YNMVABP", "itskapboy"]}, {"url": "http://bit.ly/fm008x", "users": ["BennyHollywood", "sexycelebstweet"]}, {"url": "http://t.co/rhLEICO", "users": ["___Dagger___", "varek"]}, {"url": "http://amzn.to/gXuLne", "users": ["Wurst_RT", "fleischwaren"]}, {"url": "http://t.co/hXZ7GQZ", "users": ["MikeMDesign", "twotart"]}, {"url": "http://bit.ly/fSCear", "users": ["anitainindy", "mikeinindy"]}, {"url": "http://cot.ag/gNdi9C", "users": ["rockinsider", "goddess8008S"]}, {"url": "http://yfrog.com/h3yw1afj", "users": ["GotMilkATL", "xShannonE"]}, {"url": "http://t.co/PpT7cFE", "users": ["BBQAddictsJason", "Food_Newz"]}, {"url": "http://bit.ly/fBEy0k", "users": ["NewsBing", "NewLadyGagaHere"]}, {"url": "http://bit.ly/hJi9BB", "users": ["BennyHollywood", "sexycelebstweet", "tialpovi"]}, {"url": "http://twitpic.com/4mmuoa", "users": ["CSautter", "TommyRocket"]}]';
-			load_json(eval(json));
+			load_json_orig(eval(json));
 			
-			update_graph();*/
+			update_graph();
 		});
 	}
 	
-	function load_json(data) {
+	function load_json_orig(data) {
 		var usermap = {};
 		for (var i = 0; i < data.length; i++) {
 			var url = data[i]["url"];
@@ -90,6 +90,50 @@
 				links.push({a: urls[i], b: nodeid, c: "#000000"});
 			}
 		}
+		
+		engine.nodes = nodes;
+		engine.links = links;
+	}
+	
+	function load_json(data) {
+		nodes = [];
+		links = [];
+		var itemmap = {};
+		var searches = data["nodes"]["searches"];
+		var urls = data["nodes"]["urls"];
+		var users = data["nodes"]["users"];
+		var datalinks = data["links"];
+		
+		if (searches.constructor != Array) { searches = [searches]; }
+		
+		for (var i = 0; i < searches.length; i++) {
+			var nodeid = nodes.length;
+			var loc = pick_random_location();
+			nodes.push({x: loc[0],y: loc[1],vx: 0.0,vy: 0.0,m: 1.0, c: "#000000"});
+			itemmap[searches[i]] = nodeid;
+		}
+		
+		for (var i = 0; i < urls.length; i++) {
+			var nodeid = nodes.length;
+			var loc = pick_random_location();
+			nodes.push({x: loc[0],y: loc[1],vx: 0.0,vy: 0.0,m: 1.0, c: "#FFFFFF"});
+			itemmap[urls[i]] = nodeid;
+		}
+		
+		for (var i = 0; i < users.length; i++) {
+			var nodeid = nodes.length;
+			var loc = pick_random_location();
+			nodes.push({x: loc[0],y: loc[1],vx: 0.0,vy: 0.0,m: 1.0, c: "#555555"});
+			itemmap[users[i]] = nodeid;
+		}
+		
+		for (var key in datalinks) {
+			for (var item in datalinks[key]) {
+				links.push({a: itemmap[key], b: itemmap[datalinks[key][item]], c: "#000000"});
+			}
+		}
+		engine.nodes = nodes;
+		engine.links = links;
 	}
 	
 	function update_graph() {
@@ -116,6 +160,7 @@
 		var y = -(evt.pageY - offset.top - (canvasheight / 2)) * (height/canvasheight);
 		$('#links').html("x: " + x + ", y: " + y);
 		selectedNode = engine.get_node_at_location(x, y);
+		if (selectedNode == -1) {return}
 		var url = nodes[selectedNode]["data"];
 		if (url) {
 			$('#links').html('<a href="' + url + '" target="_blank">' + url + '</a>');
@@ -161,8 +206,7 @@
 	
 	//Set up the engine with our universe parameters
 	engine.init(graphconfig);
-	engine.nodes = nodes;
-	engine.links = links;
+
 	//Set up the graphics engine with our canvas config
 	graphics.init(canvasconfig);
 });
