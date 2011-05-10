@@ -8,7 +8,7 @@ let $time := current-dateTime()
 let $uri := concat("/searches/", encode-for-uri($search), "_", $time, ".xml")
 
 let $entries :=
-for $i in 1 to 10
+for $i in 1 to 15
 let $url := concat("http://search.twitter.com/search.atom?rpp=100&amp;result_type=recent&amp;page=", $i, "&amp;q=", $search)
 let $response := xdmp:http-get($url, <options xmlns="xdmp:http-get"><format xmlns="xdmp:document-get">xml</format></options>)
 return if ($response[1]//*:code eq 200) then

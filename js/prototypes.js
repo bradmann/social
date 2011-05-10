@@ -317,7 +317,7 @@
 			//Loop through the nodes and compute the force on each node
 			for (var i=0; i < nodes.length; i++) {
 				forces[i] = [0,0];
-				if (i == this.selectedNode) {continue; };
+				if (i == this.selectedNode || nodes[i]["t"] == "search") {continue; };
 				tree_force(i, quadtree);
 			}
 			
@@ -329,10 +329,10 @@
 				var link = links[i];
 				var nodeA = link["a"];
 				var nodeB = link["b"];
-				if (nodeA !== this.selectedNode) {
+				if (nodeA !== this.selectedNode && nodes[nodeA]["t"] !== "search") {
 					forces[nodeA] = vector_add(forces[nodeA], hooke(nodes[nodeA], nodes[nodeB]));
 				}
-				if (nodeB !== this.selectedNode) {
+				if (nodeB !== this.selectedNode && nodes[nodeB]["t"] !== "search") {
 					forces[nodeB] = vector_add(forces[nodeB], hooke(nodes[nodeB], nodes[nodeA]));
 				}
 			}

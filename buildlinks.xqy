@@ -29,10 +29,8 @@ declare function local:add-to-map($map as map:map, $key as xs:string, $value as 
 };
 
 let $searches := xdmp:get-request-field("searches", "hamburger")
-let $searches := if (contains($searches, "|")) then tokenize($searches, "|") else $searches
+let $searches := if (contains($searches, "|")) then tokenize($searches, "\|") else $searches
 let $minshares := xs:integer(xdmp:get-request-field("minshares", "2"))
-
-let $searches := ("hamburger", "hot dog")
 
 let $searchmap := map:map()
 
