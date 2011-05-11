@@ -139,7 +139,7 @@
 	}
 	
 	function update_graph() {
-		var timenow = (new Date()).getTime();
+		timenow = (new Date()).getTime();
 		engine.compute_graph();
 		graphics.render(nodes, links);
 		var wait = 17 - ((new Date()).getTime() - timenow);
@@ -149,6 +149,8 @@
 	function pick_random_location() {
 		return [Math.floor(Math.random() * width) - ((width / 2) - 1), Math.floor(Math.random() * height) - ((height / 2) - 1)];
 	}
+	
+	var timenow;
 
 	setup_controls();
 	
@@ -208,6 +210,14 @@
 	
 	//Set up the engine with our universe parameters
 	engine.init(graphconfig);
+	
+	var that = this;
+	
+	engine.render = function() {
+		graphics.render(nodes, links);
+		var wait = 17 - ((new Date()).getTime() - timenow);
+		timeout = setTimeout(update_graph, 5);
+	}
 
 	//Set up the graphics engine with our canvas config
 	graphics.init(canvasconfig);

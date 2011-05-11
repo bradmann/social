@@ -72,24 +72,26 @@
 			}
 			
 			function drawNode(x, y, node) {
-				memctx.drawImage(node, x - (node.width/2), y - (node.height/2));
+				x = parseInt(x - (node.width/2));
+				y = parseInt(y - (node.height/2));
+				memctx.drawImage(node, x, y);
 			}
 			
-			function drawSpring(n1, n2, weight) {
-				memctx.save();
-				memctx.lineWidth = weight;
-				memctx.beginPath();
+			function drawSpring(n1, n2) {
 				memctx.moveTo(n1["x"], n1["y"]);
 				memctx.lineTo(n2["x"], n2["y"]);
-				memctx.closePath();
-				memctx.stroke();
-				memctx.restore();
 			}
 			
+			memctx.save();
+			memctx.lineWidth = 1;
+			memctx.beginPath();
 			for (var i=0; i < links.length; i++) {
 				var link = links[i];
-				drawSpring(nodes[link["a"]], nodes[link["b"]], 1);
+				drawSpring(nodes[link["a"]], nodes[link["b"]]);
 			}
+			memctx.closePath();
+			memctx.stroke();
+			memctx.restore();
 			
 			for (var i=0; i < nodes.length; i++) {
 				var node = nodes[i];
@@ -311,9 +313,70 @@
 				}
 			}
 			
+			function thread_complete(evt) {
+				threadCount -= 1;
+				var newforces = evt.data["forces"];
+				var range = evt.data["range"];
+				
+				for (var i = range[0]; i < range[1]; i++) {
+					forces[i] = newforces[i];
+				}
+				
+				if (threadCount == 0) {
+				
+					//Delete the quadtree
+					delete quadtree;
+
+					//Calculate the forces on each of the nodes from the springs
+					for (var i=0; i < links.length; i++) {
+						var link = links[i];
+						var nodeA = link["a"];
+						var nodeB = link["b"];
+						if (nodeA !== this.selectedNode && nodes[nodeA]["t"] !== "search") {
+							forces[nodeA] = vector_add(forces[nodeA], hooke(nodes[nodeA], nodes[nodeB]));
+						}
+						if (nodeB !== this.selectedNode && nodes[nodeB]["t"] !== "search") {
+							forces[nodeB] = vector_add(forces[nodeB], hooke(nodes[nodeB], nodes[nodeA]));
+						}
+					}
+
+					//Use the forces to calculate the velocity/position of the nodes
+					for (var i=0; i < nodes.length; i++) {
+						var node = nodes[i];
+						var net = forces[i];
+						// Calculate node velocity
+						node["vx"] = (node["vx"] + (timeStep * net[0])) * damping;
+						node["vy"] = (node["vy"] + (timeStep * net[1])) * damping;
+						
+						// Calculate node position
+						node["x"] = node["x"] + (timeStep * node["vx"]);
+						if (node["x"] > width / 2) {node["x"] = width / 2;}
+						if (node["x"] < -(width / 2)) {node["x"] = -(width / 2);}
+						
+						node["y"] = node["y"] + (timeStep * node["vy"]);
+						if (node["y"] > height / 2) {node["y"] = height / 2;}
+						if (node["y"] < -(height / 2)) {node["y"] = -(height / 2);}
+					}
+					
+					self.render();
+				}
+			}
+			
 			//Build the quadtree
 			quadtree_build();
-
+			/*var self = this;
+			var count = Math.ceil(nodes.length / 4);
+			var threadCount = 4;
+			for (var i = 0; i < 4; i++) {
+				var min = count * i;
+				var max = (i < 3) ? (count * i)  + count : nodes.length;
+				var thread = new Worker('js/worker.js');
+				thread.postMessage({nodes: nodes, range: [min, max], forces: forces, quadtree: quadtree, theta: theta, coulombConstant: coulombConstant});
+				thread.onmessage = thread_complete;
+			}*/
+			
+			
+			
 			//Loop through the nodes and compute the force on each node
 			for (var i=0; i < nodes.length; i++) {
 				forces[i] = [0,0];
