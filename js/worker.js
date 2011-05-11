@@ -3,6 +3,7 @@ forces = [];
 quadtree = {};
 theta = null;
 coulombConstant = null;
+id = null;
 
 onmessage = function(evt) {
 	nodes = evt.data["nodes"];
@@ -10,6 +11,7 @@ onmessage = function(evt) {
 	quadtree = evt.data["quadtree"];
 	theta = evt.data["theta"];
 	range = evt.data["range"];
+	id = evt.data["id"];
 	coulombConstant = evt.data["coulombConstant"];
 	
 	for (var i = range[0]; i < range[1]; i++) {
@@ -17,8 +19,8 @@ onmessage = function(evt) {
 		tree_force(i, quadtree);
 	}
 	
-	postMessage({range: range, forces: forces});
-	close();
+	postMessage({id: id, forces: forces.slice(range[0], range[1])});
+	//close();
 };
 
 function tree_force(i, node) {

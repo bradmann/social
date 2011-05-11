@@ -10,13 +10,15 @@
 	var interval = 20;
 	var nodeRadius = 10;
 	var selectedNode = -1;
-	var width = 2000;
-	var height = 1000;
+	var width = 1000;
+	var height = 500;
+	var xscale = .5
+	var yscale = .5;
 	var canvas = $('#canvas')[0];
 	var canvaswidth = $(canvas).width();
 	var canvasheight = $(canvas).height();
-	var graphconfig = {coulombConstant: 250000, damping: .02, springConstant: 2, theta: 1, timeStep: 1, width: width, height: height};
-	var canvasconfig = {canvas: canvas, width: width, height: height};
+	var graphconfig = {coulombConstant: 250000, damping: .02, springConstant: 2, theta: 1, timeStep: 1, width: 100 * width, height: 100 * height};
+	var canvasconfig = {canvas: canvas, width: width, height: height, canvaswidth: canvaswidth, canvasheight: canvasheight, xscale: xscale, yscale: yscale};
 	
 	function setup_controls() {
 		$('#speed_val').html(graphconfig.timeStep);
@@ -45,13 +47,12 @@
 		});
 		
 		$('#loaddata').bind('click', function(evt) {
-			$('#logo').hide();
 			$.ajax({
 				cache: false,
 				url: 'buildlinks.xqy?searches=osama|obama&minshares=3',
 				dataType: 'json',
-				async: false,
 				success: function(data) {
+					$('#logo').hide();
 					clearTimeout(timeout);
 					load_json(data);
 					update_graph();
@@ -147,7 +148,7 @@
 	}
 	
 	function pick_random_location() {
-		return [Math.floor(Math.random() * width) - ((width / 2) - 1), Math.floor(Math.random() * height) - ((height / 2) - 1)];
+		return [Math.floor(Math.random() * (width / xscale)) - ((width / 2) / xscale - 1), Math.floor(Math.random() * (height / yscale)) - ((height / 2) / yscale - 1)];
 	}
 	
 	var timenow;
@@ -160,8 +161,8 @@
 	$(canvas).mousedown(function(evt) {
 		evt.preventDefault();
 		var offset = $(this).offset();
-		var x = (evt.pageX - offset.left - (canvaswidth / 2)) * (width/canvaswidth);
-		var y = -(evt.pageY - offset.top - (canvasheight / 2)) * (height/canvasheight);
+		var x = (evt.pageX - offset.left - (canvaswidth / 2)) * (width/canvaswidth) / xscale;
+		var y = -(evt.pageY - offset.top - (canvasheight / 2)) * (height/canvasheight) / yscale;
 		$('#links').html("x: " + x + ", y: " + y);
 		selectedNode = engine.get_node_at_location(x, y);
 		if (selectedNode == -1) {return}
@@ -182,8 +183,8 @@
 	$(canvas).mousemove(function(evt) {
 		if (selectedNode !== -1) {
 			var offset = $(this).offset();
-			var x = (evt.pageX - offset.left - (canvaswidth / 2)) * (width/canvaswidth);
-			var y = -(evt.pageY - offset.top - (canvasheight / 2)) * (height/canvasheight);
+			var x = (evt.pageX - offset.left - (canvaswidth / 2)) * (width/canvaswidth) / xscale;
+			var y = -(evt.pageY - offset.top - (canvasheight / 2)) * (height/canvasheight) / yscale;
 			engine.move_node(selectedNode, x, y);
 		}
 	});
@@ -216,7 +217,7 @@
 	engine.render = function() {
 		graphics.render(nodes, links);
 		var wait = 17 - ((new Date()).getTime() - timenow);
-		timeout = setTimeout(update_graph, 5);
+		timeout = setTimeout(update_graph, wait);
 	}
 
 	//Set up the graphics engine with our canvas config

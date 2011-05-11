@@ -6,21 +6,27 @@
 		nodeImages: {},
 		width: 1000,
 		height: 1000,
-		lineWidth: 3,
+		xscale: 1,
+		yscale: 1,
+		lineWidth: 1,
 		strokeColor: '#000000',
 		init: function(config) {
 			this.canvas = config.canvas;
 			this.memcanvas = this.canvas.cloneNode(false);
-			this.ctx = this.canvas.getContext('2d');
-			this.memctx = this.memcanvas.getContext('2d');
 			this.width = config.width;
 			this.height = config.height;
+			this.xscale = config.xscale;
+			this.yscale = config.yscale;
+			this.memcanvas.width = this.width;
+			this.memcanvas.height = this.height;
+			this.ctx = this.canvas.getContext('2d');
+			this.memctx = this.memcanvas.getContext('2d');
 			this.memctx.translate(this.width / 2, this.height / 2);
-			this.memctx.scale(1, -1);
+			this.memctx.scale(this.xscale, -this.yscale);
 		},
 
 		render: function(nodes, links) {
-			var nodeRadius = 10;
+			var nodeRadius = 5;
 			var memcanvas = this.memcanvas;
 			var memctx = this.memctx;
 			var ctx = this.ctx;
@@ -29,7 +35,9 @@
 			var nodeImages = this.nodeImages;
 			var lineWidth = this.lineWidth;
 			var strokeColor = this.strokeColor;
-			memctx.clearRect(-(width/2), -(height/2), width, height);
+			var xscale = this.xscale;
+			var yscale = this.yscale;
+			memctx.clearRect(-(width/2)/xscale, -(height/2)/yscale, width/xscale, height/yscale);
 			
 			ctx.clearRect(0, 0, width, height);
 			var total_kinectic = 0;
@@ -113,6 +121,8 @@
 		selectedNode: -1,
 		nodes: [],
 		links: [],
+		threads: [],
+		thread_data: [],
 		width: 1000,
 		heigth: 1000,
 		init: function(config) {
@@ -124,6 +134,11 @@
 			this.width = config.width;
 			this.height = config.height;
 			this.nodeRadius = 10;
+			
+			var threadCount = 4;
+			for (var i = 0; i < 4; i++) {
+				this.threads[i] = new Worker('js/worker.js');
+			}
 		},
 		select_node: function(idx) {
 			this.selectedNode = idx;
@@ -315,14 +330,13 @@
 			
 			function thread_complete(evt) {
 				threadCount -= 1;
-				var newforces = evt.data["forces"];
-				var range = evt.data["range"];
-				
-				for (var i = range[0]; i < range[1]; i++) {
-					forces[i] = newforces[i];
-				}
+				var id = evt.data["id"];
+				self.thread_data[id] = evt.data["forces"];
 				
 				if (threadCount == 0) {
+				
+					forces = [];
+					forces = forces.concat(self.thread_data[0], self.thread_data[1], self.thread_data[2], self.thread_data[3]);
 				
 					//Delete the quadtree
 					delete quadtree;
@@ -370,8 +384,8 @@
 			for (var i = 0; i < 4; i++) {
 				var min = count * i;
 				var max = (i < 3) ? (count * i)  + count : nodes.length;
-				var thread = new Worker('js/worker.js');
-				thread.postMessage({nodes: nodes, range: [min, max], forces: forces, quadtree: quadtree, theta: theta, coulombConstant: coulombConstant});
+				var thread = this.threads[i];
+				thread.postMessage({nodes: nodes, range: [min, max], forces: forces, quadtree: quadtree, theta: theta, coulombConstant: coulombConstant, id: i});
 				thread.onmessage = thread_complete;
 			}*/
 			
@@ -400,6 +414,8 @@
 				}
 			}
 
+			var maxX = width / 2;
+			var maxY = height / 2;
 			//Use the forces to calculate the velocity/position of the nodes
 			for (var i=0; i < nodes.length; i++) {
 				var node = nodes[i];
@@ -410,12 +426,18 @@
 				
 				// Calculate node position
 				node["x"] = node["x"] + (timeStep * node["vx"]);
-				if (node["x"] > width / 2) {node["x"] = width / 2;}
-				if (node["x"] < -(width / 2)) {node["x"] = -(width / 2);}
+				if (node["x"] > maxX || node["x"] < -maxX) {
+					this.width = Math.abs(node["x"]) * 2;
+				}
+				//if (node["x"] > width / 2) {node["x"] = width / 2;}
+				//if (node["x"] < -(width / 2)) {node["x"] = -(width / 2);}
 				
 				node["y"] = node["y"] + (timeStep * node["vy"]);
-				if (node["y"] > height / 2) {node["y"] = height / 2;}
-				if (node["y"] < -(height / 2)) {node["y"] = -(height / 2);}
+				if (node["y"] > maxY || node["y"] < -maxY) {
+					this.height = Math.abs(node["y"]) * 2;
+				}
+				//if (node["y"] > height / 2) {node["y"] = height / 2;}
+				//if (node["y"] < -(height / 2)) {node["y"] = -(height / 2);}
 			}
 		}
 	}
