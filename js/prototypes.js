@@ -101,11 +101,15 @@
 			memctx.stroke();
 			memctx.restore();
 			
+			var maxX = width / xscale;
+			var maxY = height / yscale;
 			for (var i=0; i < nodes.length; i++) {
 				var node = nodes[i];
-				var radius = node["m"] * nodeRadius;
-				var nodeImage = makeNode(radius, node["c"]);
-				drawNode(node["x"], node["y"], nodeImage);
+				if (node["x"] < maxX && node["x"] > -maxX && node["y"] < maxY && node["y"] > -maxY) {
+					var radius = node["m"] * nodeRadius;
+					var nodeImage = makeNode(radius, node["c"]);
+					drawNode(node["x"], node["y"], nodeImage);
+				}
 			}
 			
 			ctx.drawImage(memcanvas, 0, 0);
@@ -135,10 +139,10 @@
 			this.height = config.height;
 			this.nodeRadius = 10;
 			
-			var threadCount = 4;
+			/*var threadCount = 4;
 			for (var i = 0; i < 4; i++) {
 				this.threads[i] = new Worker('js/worker.js');
-			}
+			}*/
 		},
 		select_node: function(idx) {
 			this.selectedNode = idx;
