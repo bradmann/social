@@ -14,8 +14,8 @@
 	var height = 500;
 	var xscale = 1;
 	var yscale = 1;
-	var xoffset = 0;
-	var yoffset = 0;
+	var offsetx = 0;
+	var offsety = 0;
 	var canvas = $('#canvas')[0];
 	var canvaswidth = $(canvas).width();
 	var canvasheight = $(canvas).height();
@@ -48,22 +48,61 @@
 			$('#spring_val').html(val);
 		});
 		
+		$(canvas).attr('width', width.toString());
+		$(canvas).attr('height', height.toString());
+		
+		$(canvas).mousedown(function(evt) {
+			evt.preventDefault();
+			var offset = $(this).offset();
+			//var x = (evt.pageX - offset.left - (canvaswidth / 2)) * (width/canvaswidth) / xscale;
+			//var y = -(evt.pageY - offset.top - (canvasheight / 2)) * (height/canvasheight) / yscale;
+			var x = evt.pageX - offset.left;
+			var y = evt.pageY - offset.top;
+			var coords = graphics.getWorldCoords(x, y);
+			$('#links').html("x: " + coords.x + ", y: " + coords.y);
+			selectedNode = engine.get_node_at_location(coords.x, coords.y);
+			if (selectedNode == -1) {return}
+			var url = nodes[selectedNode]["data"];
+			if (url) {
+				$('#links').html('<a href="' + url + '" target="_blank">' + url + '</a>');
+			}
+			engine.select_node(selectedNode);
+		});
+		
+		$(window).mouseup(function(evt) {
+			if (selectedNode !== -1) {
+				selectedNode = -1;
+				engine.deselect_node();
+			}
+		});
+		
+		$(canvas).mousemove(function(evt) {
+			if (selectedNode !== -1) {
+				var offset = $(this).offset();
+				var x = evt.pageX - offset.left;
+				var y = evt.pageY - offset.top;
+				var coords = graphics.getWorldCoords(x, y);
+				engine.move_node(selectedNode, coords.x, coords.y);
+			}
+		});
+		
 		$('#canvas').bind('mousewheel', function(evt, delta) {
 			clearTimeout(timeout);
 			var offset = $(this).offset();
-			var x = (evt.pageX - offset.left - (canvaswidth / 2)) * (width/canvaswidth) / xscale + xoffset;
-			var y = -(evt.pageY - offset.top - (canvasheight / 2)) * (height/canvasheight) / yscale + yoffset;
+			var x = evt.pageX - offset.left;
+			var y = evt.pageY - offset.top;
+			var coords = graphics.getWorldCoords(x, y);
 			if (delta > 0) {
 				xscale = xscale * 2;
 				yscale = yscale * 2;
-				xoffset += x;
-				yoffset += y;
+				offsetx += x;
+				offsety += y;
 				graphics.zoomIn(x, y);
 			} else {
 				xscale = xscale / 2;
 				yscale = yscale / 2;
-				xoffset -= x;
-				yoffset -= y;
+				offsetx -= x;
+				offsety -= y;
 				graphics.zoomOut(x, y);
 			}
 			
@@ -178,40 +217,6 @@
 	var timenow;
 
 	setup_controls();
-	
-	$(canvas).attr('width', width.toString());
-	$(canvas).attr('height', height.toString());
-	
-	$(canvas).mousedown(function(evt) {
-		evt.preventDefault();
-		var offset = $(this).offset();
-		var x = (evt.pageX - offset.left - (canvaswidth / 2)) * (width/canvaswidth) / xscale;
-		var y = -(evt.pageY - offset.top - (canvasheight / 2)) * (height/canvasheight) / yscale;
-		$('#links').html("x: " + x + ", y: " + y);
-		selectedNode = engine.get_node_at_location(x, y);
-		if (selectedNode == -1) {return}
-		var url = nodes[selectedNode]["data"];
-		if (url) {
-			$('#links').html('<a href="' + url + '" target="_blank">' + url + '</a>');
-		}
-		engine.select_node(selectedNode);
-	});
-	
-	$(window).mouseup(function(evt) {
-		if (selectedNode !== -1) {
-			selectedNode = -1;
-			engine.deselect_node();
-		}
-	});
-	
-	$(canvas).mousemove(function(evt) {
-		if (selectedNode !== -1) {
-			var offset = $(this).offset();
-			var x = (evt.pageX - offset.left - (canvaswidth / 2)) * (width/canvaswidth) / xscale;
-			var y = -(evt.pageY - offset.top - (canvasheight / 2)) * (height/canvasheight) / yscale;
-			engine.move_node(selectedNode, x, y);
-		}
-	});
 
 	//Make some nodes here
 	/*for (var i=0; i < 19; i++) {

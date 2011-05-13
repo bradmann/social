@@ -8,6 +8,8 @@
 		height: 1000,
 		xscale: 1,
 		yscale: 1,
+		offsetx: 0,
+		offsety: 0,
 		lineWidth: 1,
 		strokeColor: '#000000',
 		init: function(config) {
@@ -17,13 +19,15 @@
 			this.height = config.height;
 			this.xscale = config.xscale;
 			this.yscale = config.yscale;
+			this.offsetx = this.width / 2;
+			this.offsety = -this.height / 2;
 			this.memcanvas.width = this.width;
 			this.memcanvas.height = this.height;
 			this.ctx = this.canvas.getContext('2d');
 			this.memctx = this.memcanvas.getContext('2d');
 			this.memctx.save();
 			this.memctx.scale(this.xscale, -this.yscale);
-			this.memctx.translate(this.width / 2, -this.height / 2);
+			this.memctx.translate(this.offsetx, this.offsety);
 		},
 		
 		zoomIn: function(x, y) {
@@ -42,6 +46,14 @@
 			this.yscale = this.yscale / 2;
 			this.memctx.translate(this.width / 2, this.height / 2);
 			this.memctx.scale(this.xscale, -this.yscale);
+		},
+		
+		panTo: function(x, y) {
+		
+		},
+		
+		getWorldCoords: function(x, y) {
+			return {x: (x - (this.width / 2)) / this.xscale, y: -(y - (this.height / 2)) / this.yscale};
 		},
 
 		render: function(nodes, links) {
