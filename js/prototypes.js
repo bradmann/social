@@ -21,6 +21,25 @@
 			this.memcanvas.height = this.height;
 			this.ctx = this.canvas.getContext('2d');
 			this.memctx = this.memcanvas.getContext('2d');
+			this.memctx.save();
+			this.memctx.scale(this.xscale, -this.yscale);
+			this.memctx.translate(this.width / 2, -this.height / 2);
+		},
+		
+		zoomIn: function(x, y) {
+			this.memctx.restore();
+			this.memctx.save();
+			this.xscale = this.xscale * 2;
+			this.yscale = this.yscale * 2;
+			this.memctx.translate(this.width / 2, this.height / 2);
+			this.memctx.scale(this.xscale, -this.yscale);
+		},
+		
+		zoomOut: function(x, y) {
+			this.memctx.restore();
+			this.memctx.save();
+			this.xscale = this.xscale / 2;
+			this.yscale = this.yscale / 2;
 			this.memctx.translate(this.width / 2, this.height / 2);
 			this.memctx.scale(this.xscale, -this.yscale);
 		},
@@ -37,10 +56,9 @@
 			var strokeColor = this.strokeColor;
 			var xscale = this.xscale;
 			var yscale = this.yscale;
-			memctx.clearRect(-(width/2)/xscale, -(height/2)/yscale, width/xscale, height/yscale);
+			memctx.clearRect(-((width/xscale)), -((height/yscale)), width * 2/xscale, height *2/yscale);
 			
 			ctx.clearRect(0, 0, width, height);
-			var total_kinectic = 0;
 			
 			function createNodeCanvas(radius, linewidth, strokecolor, fill) {
 				var canvas = document.createElement('canvas');
@@ -90,7 +108,7 @@
 				memctx.lineTo(n2["x"], n2["y"]);
 			}
 			
-			memctx.save();
+			//memctx.save();
 			memctx.lineWidth = 1;
 			memctx.beginPath();
 			for (var i=0; i < links.length; i++) {
@@ -99,7 +117,7 @@
 			}
 			memctx.closePath();
 			memctx.stroke();
-			memctx.restore();
+			//memctx.restore();
 			
 			var maxX = width / xscale;
 			var maxY = height / yscale;

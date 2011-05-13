@@ -12,8 +12,10 @@
 	var selectedNode = -1;
 	var width = 1000;
 	var height = 500;
-	var xscale = .5
-	var yscale = .5;
+	var xscale = 1;
+	var yscale = 1;
+	var xoffset = 0;
+	var yoffset = 0;
 	var canvas = $('#canvas')[0];
 	var canvaswidth = $(canvas).width();
 	var canvasheight = $(canvas).height();
@@ -44,6 +46,28 @@
 			var val = $(this).val() / 100;
 			engine.springConstant = val;
 			$('#spring_val').html(val);
+		});
+		
+		$('#canvas').bind('mousewheel', function(evt, delta) {
+			clearTimeout(timeout);
+			var offset = $(this).offset();
+			var x = (evt.pageX - offset.left - (canvaswidth / 2)) * (width/canvaswidth) / xscale + xoffset;
+			var y = -(evt.pageY - offset.top - (canvasheight / 2)) * (height/canvasheight) / yscale + yoffset;
+			if (delta > 0) {
+				xscale = xscale * 2;
+				yscale = yscale * 2;
+				xoffset += x;
+				yoffset += y;
+				graphics.zoomIn(x, y);
+			} else {
+				xscale = xscale / 2;
+				yscale = yscale / 2;
+				xoffset -= x;
+				yoffset -= y;
+				graphics.zoomOut(x, y);
+			}
+			
+			update_graph();
 		});
 		
 		$('#loaddata').bind('click', function(evt) {
@@ -214,11 +238,11 @@
 	
 	var that = this;
 	
-	engine.render = function() {
+	/*engine.render = function() {
 		graphics.render(nodes, links);
 		var wait = 17 - ((new Date()).getTime() - timenow);
 		timeout = setTimeout(update_graph, wait);
-	}
+	}*/
 
 	//Set up the graphics engine with our canvas config
 	graphics.init(canvasconfig);
