@@ -35,8 +35,11 @@
 			this.memctx.save();
 			this.xscale = this.xscale * 2;
 			this.yscale = this.yscale * 2;
-			this.memctx.translate(this.width / 2, this.height / 2);
+			var coords = this.getWorldCoords(x, y);
+			this.offsetx = (this.width/2) / this.xscale + coords.x;
+			this.offsety = -(this.height/2) / this.yscale + coords.y;
 			this.memctx.scale(this.xscale, -this.yscale);
+			this.memctx.translate(this.offsetx, this.offsety);
 		},
 		
 		zoomOut: function(x, y) {
@@ -44,16 +47,21 @@
 			this.memctx.save();
 			this.xscale = this.xscale / 2;
 			this.yscale = this.yscale / 2;
-			this.memctx.translate(this.width / 2, this.height / 2);
 			this.memctx.scale(this.xscale, -this.yscale);
+			this.memctx.translate(this.offsetx, this.offsety);
 		},
 		
-		panTo: function(x, y) {
-		
+		pan: function(x, y) {
+			this.offsetx += x;
+			this.offsety += y;
+			this.memctx.restore();
+			this.memctx.save();
+			this.memctx.scale(this.xscale, -this.yscale);
+			this.memctx.translate(this.offsetx, this.offsety);
 		},
 		
 		getWorldCoords: function(x, y) {
-			return {x: (x - (this.width / 2)) / this.xscale, y: -(y - (this.height / 2)) / this.yscale};
+			return {x: (x - (this.offsetx)) / this.xscale, y: -(y + (this.offsety)) / this.yscale};
 		},
 
 		render: function(nodes, links) {
@@ -68,7 +76,9 @@
 			var strokeColor = this.strokeColor;
 			var xscale = this.xscale;
 			var yscale = this.yscale;
-			memctx.clearRect(-((width/xscale)), -((height/yscale)), width * 2/xscale, height *2/yscale);
+			var offsetx = this.offsetx;
+			var offsety = this.offsety;
+			memctx.clearRect(-offsetx/xscale, -(height + offsety)/yscale, width/xscale, height/yscale);
 			
 			ctx.clearRect(0, 0, width, height);
 			
@@ -120,7 +130,6 @@
 				memctx.lineTo(n2["x"], n2["y"]);
 			}
 			
-			//memctx.save();
 			memctx.lineWidth = 1;
 			memctx.beginPath();
 			for (var i=0; i < links.length; i++) {
@@ -129,7 +138,6 @@
 			}
 			memctx.closePath();
 			memctx.stroke();
-			//memctx.restore();
 			
 			var maxX = width / xscale;
 			var maxY = height / yscale;
