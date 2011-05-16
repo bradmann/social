@@ -51,9 +51,11 @@
 			this.memctx.translate(this.offsetx, this.offsety);
 		},
 		
-		pan: function(x, y) {
-			this.offsetx += x;
-			this.offsety += y;
+		pan: function(origx, origy, x, y) {
+			var orig = this.getWorldCoords(origx, origy);
+			var offset = this.getWorldCoords(x, y);
+			this.offsetx = offset.x - orig.x;
+			this.offsety = offset.y - orig.y;
 			this.memctx.restore();
 			this.memctx.save();
 			this.memctx.scale(this.xscale, -this.yscale);
