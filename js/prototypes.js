@@ -64,7 +64,7 @@
 		},
 		
 		getWorldCoords: function(x, y) {
-			return {x: (x - (this.offsetx)) / this.xscale, y: -(y + (this.offsety)) / this.yscale};
+			return {x: (x / this.xscale) - this.offsetx, y: -(y / this.yscale) - this.offsety};
 		},
 
 		render: function(nodes, links) {
@@ -146,11 +146,11 @@
 			var maxY = height / yscale;
 			for (var i=0; i < nodes.length; i++) {
 				var node = nodes[i];
-				if (node["x"] < maxX && node["x"] > -maxX && node["y"] < maxY && node["y"] > -maxY) {
+				//if (node["x"] < maxX && node["x"] > -maxX && node["y"] < maxY && node["y"] > -maxY) {
 					var radius = node["m"] * nodeRadius;
 					var nodeImage = makeNode(radius, node["c"]);
 					drawNode(node["x"], node["y"], nodeImage);
-				}
+				//}
 			}
 			
 			ctx.drawImage(memcanvas, 0, 0);
