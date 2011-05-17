@@ -28,7 +28,7 @@
 			var offset = $(this).offset();
 			var x = evt.pageX - offset.left;
 			var y = evt.pageY - offset.top;
-			graphics.pan(dragOrigin.x, dragOrigin.y, x, y);
+			graphics.pan(dragOrigin.offsetx, dragOrigin.offsety, x - dragOrigin.x, y - dragOrigin.y);
 			$('#links').html("x: " + graphics.offsetx + ", y: " + graphics.offsety);
 		}
 	
@@ -66,8 +66,8 @@
 			var x = evt.pageX - offset.left;
 			var y = evt.pageY - offset.top;
 			var coords = graphics.getWorldCoords(x, y);
-			dragOrigin = {x: x, y: y};
-			$('#links').html("x: " + dragOrigin.x + ", y: " + coords.y);
+			dragOrigin = {offsetx: graphics.offsetx, offsety: graphics.offsety, x: x, y: y};
+			$('#links').html("x: " + coords.x + ", y: " + coords.y);
 			selectedNode = engine.get_node_at_location(coords.x, coords.y);
 			if (selectedNode == -1) {
 				$(canvas).bind('mousemove', panCanvas);

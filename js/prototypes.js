@@ -35,9 +35,8 @@
 			this.memctx.save();
 			this.xscale = this.xscale * 2;
 			this.yscale = this.yscale * 2;
-			var coords = this.getWorldCoords(x, y);
-			this.offsetx = (this.width/2) / this.xscale + coords.x;
-			this.offsety = -(this.height/2) / this.yscale + coords.y;
+			this.offsetx = this.offsetx / 2;
+			this.offsety = this.offsety / 2;
 			this.memctx.scale(this.xscale, -this.yscale);
 			this.memctx.translate(this.offsetx, this.offsety);
 		},
@@ -47,15 +46,17 @@
 			this.memctx.save();
 			this.xscale = this.xscale / 2;
 			this.yscale = this.yscale / 2;
+			this.offsetx = this.offsetx * 2;
+			this.offsety = this.offsety * 2;
 			this.memctx.scale(this.xscale, -this.yscale);
 			this.memctx.translate(this.offsetx, this.offsety);
 		},
 		
 		pan: function(origx, origy, x, y) {
-			var orig = this.getWorldCoords(origx, origy);
-			var offset = this.getWorldCoords(x, y);
-			this.offsetx = offset.x - orig.x;
-			this.offsety = offset.y - orig.y;
+			x = x / this.xscale;
+			y = y / this.yscale;
+			this.offsetx = origx + x;
+			this.offsety = origy - y;
 			this.memctx.restore();
 			this.memctx.save();
 			this.memctx.scale(this.xscale, -this.yscale);
@@ -80,7 +81,7 @@
 			var yscale = this.yscale;
 			var offsetx = this.offsetx;
 			var offsety = this.offsety;
-			memctx.clearRect(-offsetx/xscale, -(height + offsety)/yscale, width/xscale, height/yscale);
+			memctx.clearRect(-offsetx, -((height / yscale) + offsety), width/xscale, height/yscale);
 			
 			ctx.clearRect(0, 0, width, height);
 			
