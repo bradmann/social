@@ -446,6 +446,17 @@
 			//Delete the quadtree
 			delete quadtree;
 
+			/*for (var i=0; i < nodes.length; i++) {
+				forces[i] = [0,0];
+				if (i == this.selectedNode || nodes[i]["t"] == "search") {continue; }
+				
+				for (var j=0; j < nodes.length; j++) {
+					if (j == i) { continue }
+					var force = coulomb(nodes[i], nodes[j]);
+					forces[i] = vector_add(forces[i], force);
+				}
+			}*/
+			
 			//Calculate the forces on each of the nodes from the springs
 			for (var i=0; i < links.length; i++) {
 				var link = links[i];
