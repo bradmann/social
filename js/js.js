@@ -153,22 +153,26 @@
 		
 		for (var i = 0; i < searches.length; i++) {
 			var nodeid = nodes.length;
-			var loc = pick_random_location();
+			var loc = radial_insert(i, searches.length, (width/xscale)/4);
 			nodes.push({x: loc[0],y: loc[1],vx: 0.0,vy: 0.0,m: 1.0, c: "#000000", t: "search", data: searches[i]});
 			itemmap[searches[i]] = nodeid;
 		}
 		
+		var totalnodes = urls.length + users.length;
+		var j = 0;
 		for (var i = 0; i < urls.length; i++) {
 			var nodeid = nodes.length;
-			var loc = pick_random_location();
+			var loc = radial_insert(j, totalnodes, (width/xscale)/2);
+			j++;
 			nodes.push({x: loc[0],y: loc[1],vx: 0.0,vy: 0.0,m: 1.0, c: "#FFFFFF", t: "url", data: urls[i]});
 			itemmap[urls[i]] = nodeid;
 		}
 		
 		for (var i = 0; i < users.length; i++) {
 			var nodeid = nodes.length;
-			var loc = pick_random_location();
-			nodes.push({x: loc[0],y: loc[1],vx: 0.0,vy: 0.0,m: 1.0, c: "#555555", t: "user", data: users[i]});
+			var loc = radial_insert(j, totalnodes, (width/xscale)/2);
+			j++;
+			nodes.push({x: loc[0],y: loc[1],vx: 0.0,vy: 0.0,m: 1.0, c: "#777777", t: "user", data: users[i]});
 			itemmap[users[i]] = nodeid;
 		}
 		
@@ -182,11 +186,19 @@
 	}
 	
 	function update_graph() {
+		var lastrun = timenow;
 		timenow = (new Date()).getTime();
 		engine.compute_graph();
 		graphics.render(nodes, links);
-		var wait = 17 - ((new Date()).getTime() - timenow);
+		var wait = interval - ((new Date()).getTime() - timenow);
 		timeout = setTimeout(update_graph, wait);
+	}
+	
+	function radial_insert(idx, count, radius) {
+		var angle = (idx/count) * (2 * Math.PI);
+		var x = radius * Math.cos(angle);
+		var y = radius * Math.sin(angle) * (height / width);
+		return [Math.round(x), Math.round(y)];
 	}
 	
 	function pick_random_location() {
@@ -221,12 +233,6 @@
 	engine.init(graphconfig);
 	
 	var that = this;
-	
-	/*engine.render = function() {
-		graphics.render(nodes, links);
-		var wait = 17 - ((new Date()).getTime() - timenow);
-		timeout = setTimeout(update_graph, wait);
-	}*/
 
 	//Set up the graphics engine with our canvas config
 	graphics.init(canvasconfig);
